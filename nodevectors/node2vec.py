@@ -24,7 +24,7 @@ class Node2Vec(BaseNodeEmbedder):
         workers=-1,
         keep_walks=False,
         verbose=True,
-        w2vparams={"window":10, "negative":5, "iter":10,
+        w2vparams={"window":10, "negative":5, "epochs":10,
                    "batch_words":128}):
         """
         Parameters
