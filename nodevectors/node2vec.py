@@ -21,7 +21,7 @@ class Node2Vec(BaseNodeEmbedder):
         epochs=20,
         return_weight=1.,
         neighbor_weight=1.,
-        threads=0, 
+        workers=-1,
         keep_walks=False,
         verbose=True,
         w2vparams={"window":10, "negative":5, "iter":10,
@@ -72,8 +72,8 @@ class Node2Vec(BaseNodeEmbedder):
         self.w2vparams = w2vparams
         self.return_weight = return_weight
         self.neighbor_weight = neighbor_weight
-        if threads == 0:
-            threads = numba.config.NUMBA_DEFAULT_NUM_THREADS
+        if threads == -1:
+            threads = numba.config.NUMBA_DEFAULT_NUM_THREADS # set to the number of cores available for multiprocessing
         self.threads = threads
         w2vparams['workers'] = threads
         self.verbose = verbose
@@ -129,7 +129,7 @@ class Node2Vec(BaseNodeEmbedder):
         # Train gensim word2vec model on random walks
         self.model = gensim.models.Word2Vec(
             sentences=self.walks,
-            size=self.n_components,
+            vector_size=self.n_components,
             **self.w2vparams)
         if not self.keep_walks:
             del self.walks
