@@ -33,8 +33,8 @@ class Node2Vec(BaseNodeEmbedder):
             length of the random walks
         epochs : int
             number of times to start a walk from each nodes
-        threads : int
-            number of threads to use. 0 is full use
+        workers : int
+            number of workers to use. -1 is full use
         n_components : int
             number of resulting dimensions for the embedding
             This should be set here rather than in the w2vparams arguments
@@ -58,8 +58,8 @@ class Node2Vec(BaseNodeEmbedder):
             dictionary of parameters to pass to gensim's word2vec
             Don't set the embedding dimensions through arguments here.
         """
-        if type(threads) is not int:
-            raise ValueError("Threads argument must be an int!")
+        if type(workers) is not int:
+            raise ValueError("Workers argument must be an int!")
         if walklen < 1 or epochs < 1:
             raise ValueError("Walklen and epochs arguments must be > 1")
         self.n_components = n_components
@@ -72,10 +72,10 @@ class Node2Vec(BaseNodeEmbedder):
         self.w2vparams = w2vparams
         self.return_weight = return_weight
         self.neighbor_weight = neighbor_weight
-        if threads == -1:
-            threads = numba.config.NUMBA_DEFAULT_NUM_THREADS # set to the number of cores available for multiprocessing
-        self.threads = threads
-        w2vparams['workers'] = threads
+        if workers == -1:
+            workers = numba.config.NUMBA_DEFAULT_NUM_THREADS # set to the number of cores available for multiprocessing
+        self.workers = workers
+        w2vparams['workers'] = workers
         self.verbose = verbose
 
     def fit(self, G):
@@ -89,9 +89,9 @@ class Node2Vec(BaseNodeEmbedder):
             (NetworkX, numpy 2d array, scipy CSR matrix, CSR matrix components)
         """
         if not isinstance(G, cg.csrgraph):
-            G = cg.csrgraph(G, threads=self.threads)
-        if G.threads != self.threads:
-            G.set_threads(self.threads)
+            G = cg.csrgraph(G, threads=self.workers)
+        if G.threads != self.workers:
+            G.set_threads(self.workers)
         # Because networkx graphs are actually iterables of their nodes
         #   we do list(G) to avoid networkx 1.X vs 2.X errors
         node_names = G.names
@@ -147,7 +147,7 @@ class Node2Vec(BaseNodeEmbedder):
             (NetworkX, numpy 2d array, scipy CSR matrix, CSR matrix components)
         """
         if not isinstance(G, cg.csrgraph):
-            G = cg.csrgraph(G, threads=self.threads)
+            G = cg.csrgraph(G, threads=self.workers)
         self.fit(G)
         w = np.array(
             pd.DataFrame.from_records(
